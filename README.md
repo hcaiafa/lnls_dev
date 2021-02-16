@@ -1,4 +1,4 @@
-# Python scripts to interact with Beam Position Monitor
+# Python scripts to calculate correctors' current spectra from Beam Position Monitor readings
 
 ## Dependencies
 
@@ -11,14 +11,14 @@
 
 ## Examples
 
-### Read 10 ADC samples from BPM
+### Read 10 ADC samples from BPMs present in 'bpmlist.txt' file
 
 ```bash
-    ./bpm_acq.py 'SI-09SAFE:DI-PBPM-1:' 10 'ADC'
+    ./calc_i_corr.py 10 'ADC'
 ```
 
-### Read 10 TbT samples from BPM
+### Read 10 ADC samples from BPMs present in 'bpmlist.txt' file
 
 ```bash
-    ./bpm_acq.py 'SI-09SAFE:DI-PBPM-1:' 10 'TbT'
+    ./calc_i_corr.py 10 'TbT'
 ```
