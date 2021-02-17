@@ -38,41 +38,45 @@ with open(args.bpm_list, 'rb') as filehandle:
     bpmlist = pickle.load(filehandle)
 
 nBPMs = len(bpmlist)
-xy_read = np.zeros((2*nBPMs,args.nr_samples))  # initializing x and y arrays
+xy_read = np.zeros((2*nBPMs,args.nr_samples))  # initializing x and y array
 
 iBPM = 0 # counter
+bpm = {}
 
 for bpm_name in bpmlist:
     
-    bpm = BPM(bpm_name, wait_for_connection=True)    
-    bpm.nr_samples_pre = args.nr_samples
-    bpm.nr_samples_post = args.nr_post_samples
-    bpm.nr_shots = args.nr_shots
-    bpm.acq_repeat = BPMEnums.ACQREPEAT[args.repetitive]
-    bpm.acq_channel = BPMEnums.ACQCHAN[args.acq_channel]
+    bpm[bpm_name] = BPM(bpm_name, wait_for_connection=True)  
+    
+for k,v in bpm.items:
+    
+    v.nr_samples_pre = args.nr_samples
+    v.nr_samples_post = args.nr_post_samples
+    v.nr_shots = args.nr_shots
+    v.acq_repeat = BPMEnums.ACQREPEAT[args.repetitive]
+    v.acq_channel = BPMEnums.ACQCHAN[args.acq_channel]
     
     # Set range if present on command-line
     if args.fmcpico_range is not None:
-        bpm.fmc_pico_range_ch0 = BPMEnums.FMCPICORANGE[args.fmcpico_range]
-        bpm.fmc_pico_range_ch1 = BPMEnums.FMCPICORANGE[args.fmcpico_range]
-        bpm.fmc_pico_range_ch2 = BPMEnums.FMCPICORANGE[args.fmcpico_range]
-        bpm.fmc_pico_range_ch3 = BPMEnums.FMCPICORANGE[args.fmcpico_range]
+        v.fmc_pico_range_ch0 = BPMEnums.FMCPICORANGE[args.fmcpico_range]
+        v.fmc_pico_range_ch1 = BPMEnums.FMCPICORANGE[args.fmcpico_range]
+        v.fmc_pico_range_ch2 = BPMEnums.FMCPICORANGE[args.fmcpico_range]
+        v.fmc_pico_range_ch3 = BPMEnums.FMCPICORANGE[args.fmcpico_range]
     
     # Acquistion type
-    bpm.acq_trigger = BPMEnums.ACQTRIGTYP[args.acq_trigger_type]
+    v.acq_trigger = BPMEnums.ACQTRIGTYP[args.acq_trigger_type]
     # Acquistion type
-    bpm.acq_event = BPMEnums.ACQEVENTS['Start']
+    v.acq_event = BPMEnums.ACQEVENTS['Start']
     
     # Wait for acquisition to complete
-    while not bpm.is_acq_completed:
+    while not v.is_acq_completed:
         sleep(0.5)
     
     vals = {
         'X': {
-            'data'  : np.array(bpm.array_x),
+            'data'  : np.array(v.array_x),
         },
         'Y': {
-            'data'  : np.array(bpm.array_y),
+            'data'  : np.array(v.array_y),
         }
     }
     
@@ -86,11 +90,11 @@ for bpm_name in bpmlist:
             BPMEnums.ACQCHAN['FOFB']    : 5242880,
             BPMEnums.ACQCHAN['Monit1']  : 4096000
         }
-        conv_factor = conv_factors.get(BPMEnums.ACQCHAN[bpm.acq_channel], 524288)
+        conv_factor = conv_factors.get(BPMEnums.ACQCHAN[v.acq_channel], 524288)
     
-        for _, v in vals.items():
-            range = v['range']
-            v['data'] = (range/conv_factor) * v['data']
+        for _, val in vals.items():
+            range = val['range']
+            val['data'] = (range/conv_factor) * v['data']
     
     # Store values
     
