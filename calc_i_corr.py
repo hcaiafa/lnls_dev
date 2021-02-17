@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import pickle
 import numpy as np
 from time import sleep
 from bpm.bpm import BPM, BPMEnums
@@ -22,20 +23,28 @@ parser.add_argument('--fmcpico_range', type=str, help='FMC PICO range selection 
                     nargs='?', const='1 mA', default=None, choices=BPMEnums.FMCPICORANGE.keys())
 parser.add_argument('--fmcpico_conv', action='store_true', help='FMC PICO conversion to engineering units',
                     default=False)
+parser.add_argument('--bpm_list', type=str, help='Filename containing the device name of every BPMs to be read',
+                    default='bpmlist.pickle')
+parser.add_argument('--result_file', type=str, help='Filename where the current spectra matrix (Ncorrectors x Npoints) will be exported',
+                    default='results.pickle')
 
 args = parser.parse_args()
 
 
 # Setup acquistiion parameters
 
-file = open('bpmlist.txt', 'r') # reading entire BPM list from file
-bpmlist = file.readlines()
+with open('args.bpm_list', 'rb') as filehandle:
+    # read the data as binary data stream
+    bpmlist = pickle.load(filehandle)
 
-x_read = y_read = np.zeros((len(bpmlist),args.nr_samples))  # initializing x and y arrays
+nBPMs = len(bpmlist)
+xy_read = np.zeros((2*nBPMs,args.nr_samples))  # initializing x and y arrays
 
-for ibpm in bpmlist:
+iBPM = 0 # counter
+
+for bpm_name in bpmlist:
     
-    bpm = BPM(bpmlist[ibpm], wait_for_connection=True)    
+    bpm = BPM(bpmlist[bpm_name], wait_for_connection=True)    
     bpm.nr_samples_pre = args.nr_samples
     bpm.nr_samples_post = args.nr_post_samples
     bpm.nr_shots = args.nr_shots
@@ -58,40 +67,17 @@ for ibpm in bpmlist:
     while not bpm.is_acq_completed:
         sleep(0.5)
     
-    # Convert to engineering units if required for FMC PICO
-    if BPMEnums.ACQCHAN[bpm.acq_channel] in {
-        BPMEnums.ACQCHAN['ADC'], BPMEnums.ACQCHAN['ADCSwap']}:
-        vals = {
-            'A': {
-                'data'  : np.array(bpm.array_a),
-            },
-            'B': {
-                'data'  : np.array(bpm.array_c),
-            },
-            'C': {
-                'data'  : np.array(bpm.array_b),
-            },
-            'D': {
-                'data'  : np.array(bpm.array_d),
-            }
+    vals = {
+        'X': {
+            'data'  : np.array(bpm.array_x),
+        },
+        'Y': {
+            'data'  : np.array(bpm.array_y),
         }
-    else:
-        vals = {
-            'X': {
-                'data'  : np.array(bpm.array_x),
-            },
-            'Y': {
-                'data'  : np.array(bpm.array_y),
-            }
-        }
+    }
     
-    if args.fmcpico_conv:   # !!!!!!!!!!!!!! Verificar com Russo
-        # Convert range (0, 1) to uA (100, 1000)
-        vals['A']['range'] = 100 if bpm.fmc_pico_range_ch0 == 0 else 1000
-        vals['B']['range'] = 100 if bpm.fmc_pico_range_ch1 == 0 else 1000
-        vals['C']['range'] = 100 if bpm.fmc_pico_range_ch2 == 0 else 1000
-        vals['D']['range'] = 100 if bpm.fmc_pico_range_ch3 == 0 else 1000
-    
+    if args.fmcpico_conv:   
+
         # Conversion factor
         conv_factors = {
             BPMEnums.ACQCHAN['ADC']     : 524288,
@@ -108,9 +94,18 @@ for ibpm in bpmlist:
     
     # Store values
     
-    x_read[ibpm] = vals['X']['data']
-    y_read[ibpm] = vals['Y']['data']
+    xy_read[iBPM] = vals['X']['data']
+    xy_read[nBPMs+iBPM] = vals['Y']['data']
+    
+    iBPM =+ 1
 
+print('Fim da aquisição da matriz de dimensão', xy_read.shape, '\n e 10 primeiros valores da última linha \n', xy_read[-1][:10])
+    
+with open(args.result_file, 'wb') as filewrite:
+    # store the data as binary data stream
+    pickle.dump(xy_read, filewrite)    
+    
+'''
 # Acquiring Response Matrix
 ncor = 10
 Rinv_x = Rinv_y = np.zeros((ncor,args.nr_samples))    
@@ -119,6 +114,6 @@ Rinv_x = Rinv_y = np.zeros((ncor,args.nr_samples))
 # Calculating kicks
 
 kick_factor = 30e-6 # rad/A
-theta_x = Rinv_x @ x_read/kick_factor   
-theta_y = Rinv_y @ y_read/kick_factor
-    
+theta = Rinv_x @ xy_read/kick_factor   
+
+  '''  
