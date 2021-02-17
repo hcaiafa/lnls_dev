@@ -11,13 +11,13 @@
 
 ## Examples
 
-### Read 10 ADC samples from BPMs present in 'bpmlist.txt' file
+### Read 10 ADC samples from BPMs present in 'bpmlist.pickle' file
 
 ```bash
     ./calc_i_corr.py 10 'ADC'
 ```
 
-### Read 10 ADC samples from BPMs present in 'bpmlist.txt' file
+### Read 10 ADC samples from BPMs present in 'bpmlist.pickle' file
 
 ```bash
     ./calc_i_corr.py 10 'TbT'
