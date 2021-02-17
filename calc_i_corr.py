@@ -33,7 +33,7 @@ args = parser.parse_args()
 
 # Setup acquistiion parameters
 
-with open('args.bpm_list', 'rb') as filehandle:
+with open(args.bpm_list, 'rb') as filehandle:
     # read the data as binary data stream
     bpmlist = pickle.load(filehandle)
 
@@ -44,7 +44,7 @@ iBPM = 0 # counter
 
 for bpm_name in bpmlist:
     
-    bpm = BPM(bpmlist[bpm_name], wait_for_connection=True)    
+    bpm = BPM(bpm_name, wait_for_connection=True)    
     bpm.nr_samples_pre = args.nr_samples
     bpm.nr_samples_post = args.nr_post_samples
     bpm.nr_shots = args.nr_shots
