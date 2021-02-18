@@ -3,6 +3,7 @@
 import argparse
 import pickle
 import numpy as np
+import matplotlib.pyplot as plt
 from time import sleep
 from bpm.bpm import BPM, BPMEnums
 
@@ -25,7 +26,7 @@ parser.add_argument('--fmcpico_conv', action='store_true', help='FMC PICO conver
                     default=False)
 parser.add_argument('--bpm_list', type=str, help='Filename containing the device name of every BPMs to be read',
                     default='bpmlist.pickle')
-parser.add_argument('--result_file', type=str, help='Filename where the current spectra matrix (Ncorrectors x Npoints) will be exported',
+parser.add_argument('-r','--result_file', type=str, help='Filename where the current spectra matrix (Ncorrectors x Npoints) will be exported',
                     default='results.pickle')
 
 args = parser.parse_args()
@@ -48,7 +49,7 @@ for bpm_name in bpmlist:
     bpm[bpm_name] = BPM(bpm_name, wait_for_connection=True)  
     
 for k,v in bpm.items:
-    
+    print(k)
     v.nr_samples_pre = args.nr_samples
     v.nr_samples_post = args.nr_post_samples
     v.nr_shots = args.nr_shots
@@ -94,7 +95,7 @@ for k,v in bpm.items:
     
         for _, val in vals.items():
             range = val['range']
-            val['data'] = (range/conv_factor) * v['data']
+            val['data'] = (range/conv_factor) * val['data']
     
     # Store values
     
@@ -109,15 +110,33 @@ with open(args.result_file, 'wb') as filewrite:
     # store the data as binary data stream
     pickle.dump(xy_read, filewrite)    
     
-'''
+
 # Acquiring Response Matrix
-ncor = 10
-Rinv_x = Rinv_y = np.zeros((ncor,args.nr_samples))    
+'''
+with open('Rmat.pickle', 'rb') as filehandle:
+    # read the data as binary data stream
+    Rmat = pickle.load(filehandle)    
+    
+U, W, V = np.linalg.svd(Rmat)
 
+Winv = np.linalg.pinv(Rmat,1e-5)
 
+Rinv = np.linalg.multi_dot(V, Winv, np.transpose(U))
 # Calculating kicks
 
 kick_factor = 30e-6 # rad/A
-theta = Rinv_x @ xy_read/kick_factor   
+currents = Rinv @ xy_read/kick_factor   
+'''
+'''
+FFT
+ns = arg.nr_samples
+Ts = 1e-5
+fs = 1/Ts
 
-  '''  
+freqs = np.fft.fftfreq(ns)*fs
+
+mask = freqs > 0
+
+cur_spectra = 2.0*np.abs(np.fft(currents)/ns)
+
+'''
