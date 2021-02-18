@@ -20,10 +20,6 @@ parser.add_argument('--nr_shots', type=int, help='Number of acquisition shots',
                     default=1)
 parser.add_argument('--repetitive', type=str, help='Repetitive acquisition',
                     default='Normal', choices=BPMEnums.ACQREPEAT.keys())
-parser.add_argument('--fmcpico_range', type=str, help='FMC PICO range selection (only available for XBPMs)',
-                    nargs='?', const='1 mA', default=None, choices=BPMEnums.FMCPICORANGE.keys())
-parser.add_argument('--fmcpico_conv', action='store_true', help='FMC PICO conversion to engineering units',
-                    default=False)
 parser.add_argument('--bpm_list', type=str, help='Filename containing the device name of every BPMs to be read',
                     default='bpmlist.pickle')
 parser.add_argument('-r','--result_file', type=str, help='Filename where the current spectra matrix (Ncorrectors x Npoints) will be exported',
@@ -31,6 +27,7 @@ parser.add_argument('-r','--result_file', type=str, help='Filename where the cur
 
 args = parser.parse_args()
 
+ns = args.nr_samples
 
 # Setup acquistiion parameters
 
@@ -45,64 +42,42 @@ iBPM = 0 # counter
 bpm = {}
 
 for bpm_name in bpmlist:
-    
+    print(bpm_name)
     bpm[bpm_name] = BPM(bpm_name, wait_for_connection=True)  
     
-for k,v in bpm.items:
-    print(k)
+for k,v in bpm.items():
     v.nr_samples_pre = args.nr_samples
     v.nr_samples_post = args.nr_post_samples
     v.nr_shots = args.nr_shots
     v.acq_repeat = BPMEnums.ACQREPEAT[args.repetitive]
     v.acq_channel = BPMEnums.ACQCHAN[args.acq_channel]
     
-    # Set range if present on command-line
-    if args.fmcpico_range is not None:
-        v.fmc_pico_range_ch0 = BPMEnums.FMCPICORANGE[args.fmcpico_range]
-        v.fmc_pico_range_ch1 = BPMEnums.FMCPICORANGE[args.fmcpico_range]
-        v.fmc_pico_range_ch2 = BPMEnums.FMCPICORANGE[args.fmcpico_range]
-        v.fmc_pico_range_ch3 = BPMEnums.FMCPICORANGE[args.fmcpico_range]
-    
     # Acquistion type
     v.acq_trigger = BPMEnums.ACQTRIGTYP[args.acq_trigger_type]
     # Acquistion type
     v.acq_event = BPMEnums.ACQEVENTS['Start']
-    
+
+for k,v in bpm.items():    
     # Wait for acquisition to complete
     while not v.is_acq_completed:
         sleep(0.5)
+        print('Waiting for', k)
     
     vals = {
         'X': {
-            'data'  : np.array(v.array_x),
+            'data'  : np.array(v.pos_x[:ns]),
         },
         'Y': {
-            'data'  : np.array(v.array_y),
+            'data'  : np.array(v.pos_y[:ns]),
         }
     }
-    
-    if args.fmcpico_conv:   
-
-        # Conversion factor
-        conv_factors = {
-            BPMEnums.ACQCHAN['ADC']     : 524288,
-            BPMEnums.ACQCHAN['ADCSwap'] : 524288,
-            BPMEnums.ACQCHAN['TbT']     : 1048576,
-            BPMEnums.ACQCHAN['FOFB']    : 5242880,
-            BPMEnums.ACQCHAN['Monit1']  : 4096000
-        }
-        conv_factor = conv_factors.get(BPMEnums.ACQCHAN[v.acq_channel], 524288)
-    
-        for _, val in vals.items():
-            range = val['range']
-            val['data'] = (range/conv_factor) * val['data']
-    
+    print(vals['Y']['data'])
     # Store values
     
     xy_read[iBPM] = vals['X']['data']
     xy_read[nBPMs+iBPM] = vals['Y']['data']
     
-    iBPM =+ 1
+    iBPM += 1
 
 print('Fim da aquisição da matriz de dimensão', xy_read.shape, '\n e 10 primeiros valores da última linha \n', xy_read[-1][:10])
     
@@ -129,7 +104,7 @@ currents = Rinv @ xy_read/kick_factor
 '''
 '''
 FFT
-ns = arg.nr_samples
+
 Ts = 1e-5
 fs = 1/Ts
 

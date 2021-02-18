@@ -19,7 +19,7 @@ bpmlist = [
 'SI-01C4:DI-BPM:'
 ]
 '''
-nsec = 1
+nsec = 20
 
 bpmlist = []
 
