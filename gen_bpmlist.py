@@ -45,4 +45,4 @@ with open('bpmlist.pickle', 'rb') as filehandle:
     # read the data as binary data stream
     bpmlist2 = pickle.load(filehandle)    
     
-print(bpmlist2[-1])
+print(bpmlist2)

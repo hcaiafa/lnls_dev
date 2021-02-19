@@ -105,9 +105,6 @@ currents = Rinv @ xy_read/kick_factor
 '''
 FFT
 
-Ts = 1e-5
-fs = 1/Ts
-
 freqs = np.fft.fftfreq(ns)*fs
 
 mask = freqs > 0
