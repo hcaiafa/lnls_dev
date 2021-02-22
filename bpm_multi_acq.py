@@ -81,8 +81,8 @@ for k,v in bpm.items():
 
 print('Fim da aquisição da matriz de dimensão', xy_read.shape, '\n e 10 primeiros valores da última linha \n', xy_read[-1][:10])
     
-with open(args.result_file, 'wb') as filewrite:
+with open(args.result_file + '.pickle', 'wb') as filewrite:
     # store the data as binary data stream
-    pickle.dump(xy_read, filewrite+'.pickle')    
+    pickle.dump(xy_read, filewrite )    
     
-scipy.io.savemat('./' + filewrite + '.mat', mdict={'xy_read': xy_read})
+scipy.io.savemat('./' + args.result_file + '.mat', mdict={'xy_read': xy_read})
