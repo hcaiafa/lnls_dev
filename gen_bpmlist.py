@@ -36,10 +36,11 @@ for isec in range(nsec):
     ]
     bpmlist.extend(ilist)
 
+bpmlist.extend([bpmlist[0]])
 
 with open('bpmlist.pickle', 'wb') as filehandle:
     # store the data as binary data stream
-    pickle.dump(bpmlist, filehandle)
+    pickle.dump(bpmlist[1:161], filehandle)
 
 with open('bpmlist.pickle', 'rb') as filehandle:
     # read the data as binary data stream
