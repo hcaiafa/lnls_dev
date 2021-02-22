@@ -13,9 +13,17 @@ with open('Rmat.pickle', 'rb') as filehandle:
     # read the data as binary data stream
     Rmat = pickle.load(filehandle)    
     
-#U, W, V = np.linalg.svd(Rmat)
+U, s, V = np.linalg.svd(Rmat)
 
-R_pseudoinv = np.linalg.pinv(Rmat)
+s_inv = np.array([1/i for i in s if i > 1e-5])
+
+W_inv = np.zeros((len(V), len(U))) #, dtype=complex)
+
+W_inv[:len(V), :len(V)] = np.diag(s_inv)
+
+R_pseudoinv = np.linalg.multi_dot([V, W_inv, np.transpose(U)])
+
+#R_pseudoinv = np.linalg.pinv(Rmat)
 
 n_fcor, n_2bpm = R_pseudoinv.shape # dummy
 
