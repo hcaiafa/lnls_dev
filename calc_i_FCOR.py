@@ -36,7 +36,7 @@ xy_read = np.array( [np.random.rand()*(np.cos(w_mains*t)+0.5*np.cos(2*w_mains*t)
 plt.figure(1)
 plt.plot(t,xy_read[0],t,xy_read[1])
 
-kick_factor = 30e-6 # rad/A
+kick_factor = 30 # urad/A
 corr_signals = R_pseudoinv @ xy_read/kick_factor 
 
 freqs = np.fft.fftfreq(ns)*fFOFB

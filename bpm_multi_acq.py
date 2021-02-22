@@ -74,8 +74,8 @@ for k,v in bpm.items():
     print(vals['Y']['data'])
     # Store values
     
-    xy_read[iBPM] = vals['X']['data']
-    xy_read[nBPMs+iBPM] = vals['Y']['data']
+    xy_read[iBPM] = vals['X']['data']*1e3   #converting units to um
+    xy_read[nBPMs+iBPM] = vals['Y']['data']*1e3 #converting units to um
     
     iBPM += 1
 
