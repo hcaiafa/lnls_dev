@@ -1,5 +1,6 @@
 
 import numpy as np
+import scipy.io
 import pickle
 from pymodels import si
 from apsuite.commissioning_scripts.calc_orbcorr_mat import OrbRespmat
@@ -29,3 +30,4 @@ mat = mat[:,:-1]  # remove RF line from matrix
 with open('Rmat.pickle', 'wb') as filehandle:
 	pickle.dump(mat, filehandle)
 
+scipy.io.savemat('./Rmat.mat', mdict={'mat': mat})

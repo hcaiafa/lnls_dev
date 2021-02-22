@@ -3,7 +3,7 @@
 import argparse
 import pickle
 import numpy as np
-import matplotlib.pyplot as plt
+import scipy.io
 from time import sleep
 from bpm.bpm import BPM, BPMEnums
 
@@ -23,7 +23,7 @@ parser.add_argument('--repetitive', type=str, help='Repetitive acquisition',
 parser.add_argument('--bpm_list', type=str, help='Filename containing the device name of every BPMs to be read',
                     default='bpmlist.pickle')
 parser.add_argument('-r','--result_file', type=str, help='Filename where the current spectra matrix (Ncorrectors x Npoints) will be exported',
-                    default='results.pickle')
+                    default='results')
 
 args = parser.parse_args()
 
@@ -83,32 +83,6 @@ print('Fim da aquisição da matriz de dimensão', xy_read.shape, '\n e 10 prime
     
 with open(args.result_file, 'wb') as filewrite:
     # store the data as binary data stream
-    pickle.dump(xy_read, filewrite)    
+    pickle.dump(xy_read, filewrite+'.pickle')    
     
-
-# Acquiring Response Matrix
-'''
-with open('Rmat.pickle', 'rb') as filehandle:
-    # read the data as binary data stream
-    Rmat = pickle.load(filehandle)    
-    
-U, W, V = np.linalg.svd(Rmat)
-
-Winv = np.linalg.pinv(Rmat,1e-5)
-
-Rinv = np.linalg.multi_dot(V, Winv, np.transpose(U))
-# Calculating kicks
-
-kick_factor = 30e-6 # rad/A
-currents = Rinv @ xy_read/kick_factor   
-'''
-'''
-FFT
-
-freqs = np.fft.fftfreq(ns)*fs
-
-mask = freqs > 0
-
-cur_spectra = 2.0*np.abs(np.fft(currents)/ns)
-
-'''
+scipy.io.savemat('./' + filewrite + '.mat', mdict={'xy_read': xy_read})

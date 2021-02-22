@@ -5,6 +5,7 @@ Created on Mon Feb 15 19:29:56 2021
 """
 import pickle
 import numpy as np
+import scipy.io
 import matplotlib.pyplot as plt
 
 
@@ -41,7 +42,7 @@ corr_signals = R_pseudoinv @ xy_read/kick_factor
 
 freqs = np.fft.fftfreq(ns)*fFOFB
 
-mask = freqs > 0
+mask = freqs > 0  # list with indexes 
 
 cur_spectra =  np.array( [ 2.0*np.abs(np.fft.fft(corr_signals[i])/ns) for i in range(n_fcor) ] )
 
