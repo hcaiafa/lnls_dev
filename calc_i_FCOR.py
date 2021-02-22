@@ -8,10 +8,10 @@ import numpy as np
 import scipy.io
 import matplotlib.pyplot as plt
 
-
+acqfile = 'test100k.pickle'
 with open('Rmat.pickle', 'rb') as filehandle:
     # read the data as binary data stream
-    Rmat = pickle.load(filehandle)    
+    Rmat = pickle.load(filehandle)    # [um/urad]
     
 U, s, V = np.linalg.svd(Rmat)
 
@@ -34,18 +34,20 @@ wFOFB = 2*np.pi*fFOFB
 
 Ts = 1/fFOFB
 
-## Dummy code
-ns =int(1e4)
+# w_mains = 2.*np.pi*60;
+
+with open(acqfile, 'rb') as filehandle2:
+    # read the data as binary data stream
+    xy_read = pickle.load(filehandle2)*1e-3    #converting units to um [MODIFY TO 1e-3!!!!!!!!!!!!]
+
+_,ns = xy_read.shape
+
 t = np.linspace(0.,ns*Ts,ns)
-
-w_mains = 2.*np.pi*60;
-
-xy_read = np.array( [np.random.rand()*(np.cos(w_mains*t)+0.5*np.cos(2*w_mains*t)) for i in range(n_2bpm)]  ) 
 
 plt.figure(1)
 plt.plot(t,xy_read[0],t,xy_read[1])
 
-kick_factor = 30 # urad/A
+kick_factor = 0.03 # urad/mA
 corr_signals = R_pseudoinv @ xy_read/kick_factor 
 
 freqs = np.fft.fftfreq(ns)*fFOFB
@@ -60,7 +62,13 @@ cur_min =  np.array([ np.min(cur_spectra[:,i]) for i in range(ns) ] )
 
 plt.figure(2)
 
-plt.plot(freqs[mask],cur_mean[mask],freqs[mask],cur_max[mask],freqs[mask],cur_min[mask])
-
+plt.plot(freqs[mask],cur_max[mask],label="max spectrum")
+plt.plot(freqs[mask],cur_mean[mask],label="avg spectrum")
+plt.plot(freqs[mask],cur_min[mask],label="min spectrum")
+plt.legend()
+plt.yscale('log')
+plt.ylabel('Amplitude [mA]')
+plt.xlabel('Frequency [Hz]')
+plt.grid(True)
 plt.show()
 
