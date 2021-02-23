@@ -10,6 +10,8 @@ Fs = 499.6649e6/19872;  % Sampling rate [Hz]
 Gcorr = 30e-6;          % Magnet deflection gain [rad/A]
 pinv_tol = 0;           % Pseudo inverse singular value threshold
 nsv = 4;                % Numbe of singular values to be used
+nbpm = 160;             % Number of BPMs
+nhcorr = 80;            % Number of horizontal correctors
 
 square_Rm = false;
 bw_interest = false;
@@ -55,6 +57,13 @@ xy = detrend(xy, 0);
 
 % Compute fast orbit corrector currents
 Icorr = xy*Rc'/Gcorr;
+
+% Project orbit distortions onto modal space
+[Ux,~,~] = svd(Rm(1:nbpm, 1:nhcorr),'econ');
+[Uy,~,~] = svd(Rm(nbpm+1:end, nhcorr+1:end),'econ');
+
+modex = xy(:,1:nbpm)*Ux;
+modey = xy(:,nbpm+1:end)*Uy;
 
 if voltage_response
     % Inverse magnet dynamics - Voltage/Current transfer function
@@ -111,3 +120,45 @@ if voltage_response
     ylabel('Voltage [V]')
     legend('max spectrum', 'avg spectrum', 'min spectrum', 'Location', 'SouthWest')
 end
+
+%% Modal data
+idx=find(fx > 0 & fx < 2500);
+
+figure;
+ax(1) = subplot(121);
+h = surf(fx(idx), 1:nbpm, 20*log10(Yx(idx,:))');
+view(0,90);
+h.EdgeColor = 'none';
+axis tight
+zlim_x = caxis;
+ylabel('Mode number')
+xlabel('Frequency [Hz]')
+set(ax(1), 'XTick', 0:240:fx(end))
+ax(1).XAxis.MinorTickValues = 0:60:fx(end);
+set(ax(1), 'XMinorTick', 'on')
+ylim([0 size(modex,2)]);
+
+ax(2) = subplot(122);
+h = surf(fy(idx), 1:nbpm, 20*log10(Yy(idx,:))');
+view(0,90);
+h.EdgeColor = 'none';
+axis tight
+zlim_y = caxis;
+xlabel('Frequency [Hz]')
+set(ax(2), 'XTick', 0:240:fx(end))
+ax(2).XAxis.MinorTickValues = 0:60:fx(end);
+set(ax(2), 'XMinorTick', 'on')
+set(ax(2), 'XMinorTick', 'on')
+ylim([0 size(modey,2)]);
+
+zmin = floor(min([zlim_x zlim_y];
+zmax = max([zlim_x zlim_y]);
+zmin = -180;
+zmax = -90;
+
+subplot(121);
+caxis([zmin zmax]);
+colorbar
+subplot(122);
+caxis([zmin zmax]);
+colorbar
