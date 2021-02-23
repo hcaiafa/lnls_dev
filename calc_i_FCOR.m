@@ -103,5 +103,11 @@ legend('max spectrum', 'avg spectrum', 'min spectrum', 'Location', 'SouthWest')
 % Voltage data
 if voltage_response
     figure
-    plot(f, Y_Vcorr)
+    loglog(f, [max(Y_Vcorr,[],2) mean(Y_Vcorr,2) min(Y_Vcorr,[],2)])
+    %ylim([0.5e-5 5e2])
+    xlim([0 Fs/2])
+    grid on
+    xlabel('Frequency [Hz]')
+    ylabel('Voltage [V]')
+    legend('max spectrum', 'avg spectrum', 'min spectrum', 'Location', 'SouthWest')
 end
