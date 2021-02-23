@@ -34,7 +34,7 @@ if filter_sv
     [U,s,V] = svd(Rm,'econ');
     sv = diag(s);
     sv(nsv+1:end) = 0;
-    Rc = V'*diag(1./(sv))*U;
+    Rc = V*diag(1./(sv))*U';
 else
     Rc = pinv(Rm, pinv_tol);
 end
