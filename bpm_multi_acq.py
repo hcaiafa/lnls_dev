@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 
+"""
+Created on Mon Feb 15 19:29:56 2021
+This script loads bpm PVs whose names are in bpmlist.pickle (default) and dumps bpm readings in [[x],[y]]
+format to the 'results' (default) .pickle and .mat files. Shape is 2*nBPMs x n_samples. Units in nm. 
+
+@author: henrique.caiafa
+"""
+
 import argparse
 import pickle
 import numpy as np
@@ -82,7 +90,6 @@ for k,v in bpm.items():
 print('Fim da aquisição da matriz de dimensão', xy_read.shape, '\n e 10 primeiros valores da última linha \n', xy_read[-1][:10])
     
 with open(args.result_file + '.pickle', 'wb') as filewrite:
-    # store the data as binary data stream
     pickle.dump(xy_read, filewrite )    
     
 scipy.io.savemat('./' + args.result_file + '.mat', mdict={'xy_read': xy_read})
