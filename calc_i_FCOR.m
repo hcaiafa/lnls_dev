@@ -3,6 +3,7 @@ load('test100k.mat');
 load('Rmat.mat')
 
 % Parameters
+bw = 1.8e3;             % Bandwidth of interest [Hz]
 L = 3.5e-3;             % Magnet inductance [H]
 R = 0.25;               % Magnet resistance [Ohm]
 Fs = 499.6649e6/19872;  % Sampling rate [Hz]
